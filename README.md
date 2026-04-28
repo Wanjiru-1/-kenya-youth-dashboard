@@ -129,5 +129,4 @@ Geospatial Data Scientist | Data Analyst | Young African Leader
 
 ---
 
-**For Mastercard Foundation Review:**  
 This project demonstrates data storytelling for decision-makers, geospatial analysis capabilities, and alignment with Young Africa Works objectives. It was built to identify high-impact investment zones for youth economic inclusion across Kenya.
