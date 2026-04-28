@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenya Youth Opportunity Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            color: #1a472a;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .kpi-card h3 {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .kpi-value {
+            color: #1a472a;
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .kpi-subtext {
+            color: #999;
+            font-size: 13px;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-card h3 {
+            color: #1a472a;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .map-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .map-container h3 {
+            color: #1a472a;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        #unemploymentMap, #educationMap, #internetMap,
+        #topUnemployed, #bottomUnemployed, #comparison {
+            width: 100%;
+            height: 450px;
+        }
+        
+        .metric-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .metric-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .metric-btn.active {
+            background: #1a472a;
+            color: white;
+            border-color: #1a472a;
+        }
+        
+        .metric-btn:hover {
+            border-color: #1a472a;
+        }
+        
+        footer {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 13px;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 22px;
+            }
+            
+            .kpi-value {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇰🇪 Kenya Youth Opportunity Dashboard</h1>
+            <p>Analyzing youth employment, education access, and digital connectivity across 42 counties. Data-driven insights for youth economic inclusion.</p>
+        </header>
+        
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h3>Avg Youth Unemployment</h3>
+                <div class="kpi-value" id="avgUnemployment">—</div>
+                <div class="kpi-subtext">across 42 counties</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Avg Education Access</h3>
+                <div class="kpi-value" id="avgEducation">—</div>
+                <div class="kpi-subtext">secondary completion rate</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Avg Internet Access</h3>
+                <div class="kpi-value" id="avgInternet">—</div>
+                <div class="kpi-subtext">% digital connectivity</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Highest Opportunity</h3>
+                <div class="kpi-value" id="bestCounty">—</div>
+                <div class="kpi-subtext">lowest unemployment</div>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <h3>📍 Youth Unemployment Rate by County (Interactive Choropleth)</h3>
+            <div class="metric-selector">
+                <button class="metric-btn active" onclick="switchMetric('unemployment')">Unemployment Rate</button>
+                <button class="metric-btn" onclick="switchMetric('education')">Education Access</button>
+                <button class="metric-btn" onclick="switchMetric('internet')">Internet Access</button>
+            </div>
+            <div id="unemploymentMap" style="display: block;"></div>
+            <div id="educationMap" style="display: none;"></div>
+            <div id="internetMap" style="display: none;"></div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>📈 Top 10 Counties - Highest Unemployment (Priority for Investment)</h3>
+                <div id="topUnemployed"></div>
+            </div>
+            <div class="chart-card">
+                <h3>✅ Bottom 10 Counties - Lowest Unemployment (Model Cases)</h3>
+                <div id="bottomUnemployed"></div>
+            </div>
+        </div>
+        
+        <div class="chart-card" style="margin-bottom: 30px;">
+            <h3>🔀 Correlation: Education vs. Employment Opportunity</h3>
+            <div id="comparison"></div>
+        </div>
+        
+        <footer>
+            <p><strong>Data Source:</strong> World Bank Kenya Indicators, synthetic county-level distributions based on KNBS patterns (2021–2024)</p>
+            <p><strong>Purpose:</strong> Identifying investment priorities for Mastercard Foundation's Young Africa Works strategy</p>
+        </footer>
+    </div>
+    
+    <script>
+        const countiesData = [
+            {"name": "Nairobi", "unemployment": 12.5, "education": 85, "internet": 78, "lat": -1.2921, "lng": 36.8219},
+            {"name": "Kisumu", "unemployment": 18.3, "education": 62, "internet": 45, "lat": -0.1022, "lng": 34.7617},
+            {"name": "Mombasa", "unemployment": 16.8, "education": 68, "internet": 52, "lat": -4.0435, "lng": 39.6682},
+            {"name": "Nakuru", "unemployment": 14.2, "education": 71, "internet": 58, "lat": -0.2833, "lng": 36.0667},
+            {"name": "Kiambu", "unemployment": 11.5, "education": 82, "internet": 72, "lat": -1.1667, "lng": 36.8333},
+            {"name": "Uasin Gishu", "unemployment": 13.7, "education": 73, "internet": 54, "lat": 0.5143, "lng": 35.2689},
+            {"name": "Kericho", "unemployment": 15.4, "education": 66, "internet": 48, "lat": -0.3667, "lng": 35.2833},
+            {"name": "Bomet", "unemployment": 16.1, "education": 64, "internet": 46, "lat": -0.7833, "lng": 35.3667},
+            {"name": "Muranga", "unemployment": 12.8, "education": 79, "internet": 68, "lat": -0.6833, "lng": 37.1667},
+            {"name": "Nyeri", "unemployment": 13.2, "education": 80, "internet": 70, "lat": -0.4167, "lng": 36.9333},
+            {"name": "Nyandarua", "unemployment": 14.5, "education": 74, "internet": 61, "lat": -0.5167, "lng": 36.3667},
+            {"name": "Laikipia", "unemployment": 15.9, "education": 70, "internet": 55, "lat": -0.0167, "lng": 36.6333},
+            {"name": "Samburu", "unemployment": 28.4, "education": 38, "internet": 22, "lat": 1.0833, "lng": 37.5},
+            {"name": "Marsabit", "unemployment": 26.7, "education": 42, "internet": 25, "lat": 2.7167, "lng": 37.6667},
+            {"name": "Isiolo", "unemployment": 25.3, "education": 45, "internet": 28, "lat": 0.35, "lng": 37.5833},
+            {"name": "Turkana", "unemployment": 27.8, "education": 40, "internet": 20, "lat": 2.3333, "lng": 35.5833},
+            {"name": "West Pokot", "unemployment": 23.5, "education": 48, "internet": 30, "lat": 1.3333, "lng": 35.1833},
+            {"name": "Baringo", "unemployment": 21.7, "education": 52, "internet": 35, "lat": 0.4667, "lng": 35.6833},
+            {"name": "Elgeyo-Marakwet", "unemployment": 22.1, "education": 50, "internet": 32, "lat": 0.8333, "lng": 35.3333},
+            {"name": "Trans Nzoia", "unemployment": 18.6, "education": 59, "internet": 42, "lat": 0.8333, "lng": 34.8333},
+            {"name": "Nandi", "unemployment": 17.2, "education": 63, "internet": 50, "lat": 0.35, "lng": 35.1833},
+            {"name": "Kakamega", "unemployment": 19.8, "education": 61, "internet": 44, "lat": 0.2833, "lng": 34.75},
+            {"name": "Vihiga", "unemployment": 18.4, "education": 65, "internet": 47, "lat": 0.0833, "lng": 34.7833},
+            {"name": "Bungoma", "unemployment": 20.3, "education": 58, "internet": 41, "lat": 0.5667, "lng": 34.5667},
+            {"name": "Busia", "unemployment": 19.5, "education": 60, "internet": 43, "lat": 0.4833, "lng": 34.1167},
+            {"name": "Siaya", "unemployment": 19.1, "education": 62, "internet": 45, "lat": -0.0667, "lng": 34.2667},
+            {"name": "Migori", "unemployment": 20.8, "education": 56, "internet": 39, "lat": -1.0667, "lng": 33.95},
+            {"name": "Homa Bay", "unemployment": 21.2, "education": 54, "internet": 38, "lat": -0.5167, "lng": 34.4667},
+            {"name": "Nyamira", "unemployment": 17.6, "education": 64, "internet": 49, "lat": -0.6, "lng": 34.9},
+            {"name": "Kisii", "unemployment": 18.9, "education": 61, "internet": 46, "lat": -0.6833, "lng": 34.7833},
+            {"name": "Narok", "unemployment": 22.5, "education": 51, "internet": 33, "lat": -1.0833, "lng": 35.8667},
+            {"name": "Kajiado", "unemployment": 20.7, "education": 57, "internet": 40, "lat": -2.25, "lng": 36.75},
+            {"name": "Makueni", "unemployment": 24.3, "education": 46, "internet": 29, "lat": -2.7333, "lng": 37.7333},
+            {"name": "Kitui", "unemployment": 23.8, "education": 47, "internet": 31, "lat": -1.3167, "lng": 37.95},
+            {"name": "Machakos", "unemployment": 19.4, "education": 59, "internet": 44, "lat": -2.7167, "lng": 37.2667},
+            {"name": "Taita-Taveta", "unemployment": 23.2, "education": 49, "internet": 34, "lat": -3.5833, "lng": 38.3},
+            {"name": "Kwale", "unemployment": 22.6, "education": 52, "internet": 36, "lat": -4.1667, "lng": 39.4333},
+            {"name": "Lamu", "unemployment": 21.4, "education": 55, "internet": 37, "lat": -2.2667, "lng": 40.9},
+            {"name": "Tana River", "unemployment": 25.9, "education": 43, "internet": 26, "lat": -2.4, "lng": 40.1833},
+            {"name": "Garissa", "unemployment": 27.1, "education": 41, "internet": 24, "lat": -0.4667, "lng": 39.65},
+            {"name": "Wajir", "unemployment": 28.9, "education": 36, "internet": 19, "lat": 1.7333, "lng": 40.0667},
+            {"name": "Mandera", "unemployment": 29.5, "education": 35, "internet": 18, "lat": 3.8333, "lng": 41.85},
+        ];
+        
+        function updateKPIs() {
+            const avg = (arr) => (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1);
+            const unemployment = countiesData.map(c => c.unemployment);
+            const education = countiesData.map(c => c.education);
+            const internet = countiesData.map(c => c.internet);
+            
+            document.getElementById('avgUnemployment').textContent = avg(unemployment) + '%';
+            document.getElementById('avgEducation').textContent = avg(education) + '%';
+            document.getElementById('avgInternet').textContent = avg(internet) + '%';
+            
+            const bestCounty = countiesData.reduce((a, b) => a.unemployment < b.unemployment ? a : b);
+            document.getElementById('bestCounty').textContent = bestCounty.name;
+        }
+        
+        function createChoropleths() {
+            const lat = countiesData.map(c => c.lat);
+            const lng = countiesData.map(c => c.lng);
+            const countyNames = countiesData.map(c => c.name);
+            
+            // Unemployment map
+            const trace1 = {
+                type: 'scattergeo',
+                lon: lng,
+                lat: lat,
+                mode: 'markers+text',
+                marker: {
+                    size: countiesData.map(c => 8 + c.unemployment / 2),
+                    color: countiesData.map(c => c.unemployment),
+                    colorscale: 'Reds',
+                    showscale: true,
+                    colorbar: {title: "Unemployment %"},
+                    line: {width: 0.5, color: '#fff'}
+                },
+                text: countyNames,
+                textposition: 'top center',
+                hovertemplate: '<b>%{text}</b><br>Unemployment: %{marker.color:.1f}%<extra></extra>',
+            };
+            
+            const layout1 = {
+                geo: {scope: 'africa', center: {lon: 37.5, lat: -0.5}, projection: {type: 'mercator'}},
+                margin: {l: 0, r: 0, t: 0, b: 0},
+                height: 450,
+                hovermode: 'closest'
+            };
+            
+            Plotly.newPlot('unemploymentMap', [trace1], layout1, {responsive: true});
+            
+            // Education map
+            const trace2 = {
+                type: 'scattergeo',
+                lon: lng,
+                lat: lat,
+                mode: 'markers+text',
+                marker: {
+                    size: countiesData.map(c => 8 + c.education / 10),
+                    color: countiesData.map(c => c.education),
+                    colorscale: 'Greens',
+                    showscale: true,
+                    colorbar: {title: "Education %"},
+                    line: {width: 0.5, color: '#fff'}
+                },
+                text: countyNames,
+                textposition: 'top center',
+                hovertemplate: '<b>%{text}</b><br>Education Access: %{marker.color:.1f}%<extra></extra>',
+            };
+            
+            Plotly.newPlot('educationMap', [trace2], layout1, {responsive: true});
+            
+            // Internet map
+            const trace3 = {
+                type: 'scattergeo',
+                lon: lng,
+                lat: lat,
+                mode: 'markers+text',
+                marker: {
+                    size: countiesData.map(c => 8 + c.internet / 10),
+                    color: countiesData.map(c => c.internet),
+                    colorscale: 'Blues',
+                    showscale: true,
+                    colorbar: {title: "Internet %"},
+                    line: {width: 0.5, color: '#fff'}
+                },
+                text: countyNames,
+                textposition: 'top center',
+                hovertemplate: '<b>%{text}</b><br>Internet Access: %{marker.color:.1f}%<extra></extra>',
+            };
+            
+            Plotly.newPlot('internetMap', [trace3], layout1, {responsive: true});
+        }
+        
+        function createBarCharts() {
+            // Top 10 unemployed
+            const sorted1 = [...countiesData].sort((a, b) => b.unemployment - a.unemployment);
+            const top10 = sorted1.slice(0, 10);
+            
+            const trace1 = {
+                x: top10.map(c => c.unemployment),
+                y: top10.map(c => c.name),
+                type: 'bar',
+                orientation: 'h',
+                marker: {color: '#d62728'}
+            };
+            
+            const layout1 = {
+                margin: {l: 120, r: 30, t: 30, b: 30},
+                xaxis: {title: 'Youth Unemployment (%)'},
+                height: 350,
+                showlegend: false
+            };
+            
+            Plotly.newPlot('topUnemployed', [trace1], layout1, {responsive: true});
+            
+            // Bottom 10
+            const bottom10 = sorted1.slice(-10).reverse();
+            const trace2 = {
+                x: bottom10.map(c => c.unemployment),
+                y: bottom10.map(c => c.name),
+                type: 'bar',
+                orientation: 'h',
+                marker: {color: '#2ca02c'}
+            };
+            
+            Plotly.newPlot('bottomUnemployed', [trace2], layout1, {responsive: true});
+        }
+        
+        function createScatterPlot() {
+            const trace = {
+                x: countiesData.map(c => c.education),
+                y: countiesData.map(c => c.unemployment),
+                text: countiesData.map(c => c.name),
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    size: 10,
+                    color: countiesData.map(c => c.internet),
+                    colorscale: 'Viridis',
+                    showscale: true,
+                    colorbar: {title: "Internet %"},
+                    line: {width: 1, color: '#fff'}
+                },
+                hovertemplate: '<b>%{text}</b><br>Education: %{x:.0f}%<br>Unemployment: %{y:.1f}%<extra></extra>'
+            };
+            
+            const layout = {
+                xaxis: {title: 'Education Access (%)'},
+                yaxis: {title: 'Youth Unemployment (%)'},
+                margin: {l: 60, r: 60, t: 30, b: 60},
+                height: 350,
+                hovermode: 'closest'
+            };
+            
+            Plotly.newPlot('comparison', [trace], layout, {responsive: true});
+        }
+        
+        function switchMetric(metric) {
+            document.querySelectorAll('.metric-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('unemploymentMap').style.display = metric === 'unemployment' ? 'block' : 'none';
+            document.getElementById('educationMap').style.display = metric === 'education' ? 'block' : 'none';
+            document.getElementById('internetMap').style.display = metric === 'internet' ? 'block' : 'none';
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateKPIs();
+            createChoropleths();
+            createBarCharts();
+            createScatterPlot();
+        });
+    </script>
+</body>
+</html>
